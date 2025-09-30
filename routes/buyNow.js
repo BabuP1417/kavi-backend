@@ -53,7 +53,7 @@ router.post("/api/buy-now", async (req, res) => {
 
     const mailOptions = {
       from: "pazhanivel187@gmail.com",
-      to: "pazhanivel187@gmail.com", // put your own inbox here
+      to: "velbab2020@gmail.com", // put your own inbox here
       subject,
       html: `
         <h3>New Order Details</h3>
