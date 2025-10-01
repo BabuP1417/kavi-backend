@@ -3,18 +3,24 @@ const router = express.Router();
 const Cracker = require('../models/Cracker');
 const auth = require('../middleware/auth');
 const multer = require('multer');
-const path = require('path');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // save in server/uploads folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
+// Cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Multer storage for Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'crackers', // Cloudinary folder name
+    allowed_formats: ['jpg', 'jpeg', 'png'],
+  },
+});
 const upload = multer({ storage });
 
 // Public: list crackers
@@ -48,7 +54,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
       return res.status(400).json({ message: 'Missing fields' });
     }
 
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const imageUrl = req.file ? req.file.path : null; // Cloudinary URL
 
     const c = new Cracker({ title, name, price, imageUrl });
     await c.save();
@@ -65,7 +71,7 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
     const updateData = { title, name, price };
 
     if (req.file) {
-      updateData.imageUrl = `/uploads/${req.file.filename}`;
+      updateData.imageUrl = req.file.path; // Cloudinary URL
     }
 
     const updated = await Cracker.findByIdAndUpdate(req.params.id, updateData, { new: true });
