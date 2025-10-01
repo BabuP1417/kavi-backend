@@ -67,11 +67,13 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
 // Update cracker
 router.put('/:id', auth, upload.single('image'), async (req, res) => {
   try {
-    const { title, name, price } = req.body;
+    const { title, name, price, imageUrl } = req.body;
     const updateData = { title, name, price };
 
     if (req.file) {
       updateData.imageUrl = req.file.path; // Cloudinary URL
+    } else if (imageUrl) {
+      updateData.imageUrl = imageUrl; // Keep existing image
     }
 
     const updated = await Cracker.findByIdAndUpdate(req.params.id, updateData, { new: true });
