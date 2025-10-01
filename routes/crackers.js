@@ -33,7 +33,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Protected: create cracker with image upload
+// Create cracker
 router.post("/", auth, upload.single("image"), async (req, res) => {
   try {
     const { title, name, price } = req.body;
@@ -44,17 +44,21 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
     let imageUrl = null;
 
     if (req.file) {
-      // Upload image to ImageBB
-      const form = new FormData();
-      form.append("image", req.file.buffer.toString("base64"));
+      const base64Image = req.file.buffer.toString("base64");
 
       const response = await axios.post(
         `https://api.imgbb.com/1/upload?key=2c698535b7a0e0fccfb99be6786aeb13`,
-        form,
-        { headers: form.getHeaders() }
+        new URLSearchParams({
+          image: base64Image,
+        }),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
       );
 
-      imageUrl = response.data.data.url; // ✅ public URL
+      imageUrl = response.data.data.url;
     }
 
     const c = new Cracker({ title, name, price, imageUrl });
@@ -62,7 +66,7 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
     res.status(201).json(c);
   } catch (err) {
     console.error("Upload error:", err.response?.data || err.message);
-    res.status(500).json({ message: "Image upload failed" });
+    res.status(500).json({ message: "Image upload failed", error: err.response?.data || err.message });
   }
 });
 
@@ -73,29 +77,30 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
     const updateData = { title, name, price };
 
     if (req.file) {
-      const form = new FormData();
-      form.append("image", req.file.buffer.toString("base64"));
+      const base64Image = req.file.buffer.toString("base64");
 
       const response = await axios.post(
         `https://api.imgbb.com/1/upload?key=2c698535b7a0e0fccfb99be6786aeb13`,
-        form,
-        { headers: form.getHeaders() }
+        new URLSearchParams({
+          image: base64Image,
+        }),
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
       );
 
       updateData.imageUrl = response.data.data.url;
     }
 
-    const updated = await Cracker.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    );
+    const updated = await Cracker.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!updated) return res.status(404).json({ message: "Cracker not found" });
 
     res.json(updated);
   } catch (err) {
     console.error("Update error:", err.response?.data || err.message);
-    res.status(500).json({ message: "Update failed" });
+    res.status(500).json({ message: "Update failed", error: err.response?.data || err.message });
   }
 });
 
