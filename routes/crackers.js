@@ -49,7 +49,7 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
       form.append("image", req.file.buffer.toString("base64"));
 
       const response = await axios.post(
-        `https://api.imgbb.com/1/upload?key=92f5f31e12348cf136b52f43137684e0`,
+        `https://api.imgbb.com/1/upload?key=2c698535b7a0e0fccfb99be6786aeb13`,
         form,
         { headers: form.getHeaders() }
       );
@@ -77,7 +77,7 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
       form.append("image", req.file.buffer.toString("base64"));
 
       const response = await axios.post(
-        `https://api.imgbb.com/1/upload?key=92f5f31e12348cf136b52f43137684e0`,
+        `https://api.imgbb.com/1/upload?key=2c698535b7a0e0fccfb99be6786aeb13`,
         form,
         { headers: form.getHeaders() }
       );
